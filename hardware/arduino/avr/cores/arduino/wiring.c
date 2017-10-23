@@ -39,6 +39,12 @@ volatile unsigned long timer0_overflow_count = 0;
 volatile unsigned long timer0_millis = 0;
 static unsigned char timer0_fract = 0;
 
+static volatile voidFuncPtr intMsFunc = 0;
+
+void attachMsInterrupt(void (*userFunc)(void)) {
+    intMsFunc = userFunc;
+}
+
 #if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
 ISR(TIM0_OVF_vect)
 #else
@@ -60,6 +66,9 @@ ISR(TIMER0_OVF_vect)
 	timer0_fract = f;
 	timer0_millis = m;
 	timer0_overflow_count++;
+
+	if(intMsFunc)
+		intMsFunc();
 }
 
 unsigned long millis()
